@@ -1,0 +1,512 @@
+﻿unit UMain;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, IdBaseComponent,
+  IdComponent, IdTCPConnection, IdTCPClient, IdCmdTCPClient, IdIRC, IdContext,
+  Vcl.ComCtrls, IdIOHandler, IdIOHandlerSocket, IdIOHandlerStack, Vcl.Mask,
+  Vcl.Imaging.pngimage, Vcl.ExtCtrls, Vcl.Samples.Spin, IdGlobal, shellapi,
+  IdAntiFreezeBase, IdAntiFreeze, Strutils, Vcl.OleCtrls, IdHTTP, IdSSL,
+  IdSSLOpenSSL;
+
+type
+  TfrmMain = class(TForm)
+    IdIRCTwitch: TIdIRC;
+    memServerInfo: TMemo;
+    richChat: TRichEdit;
+    edtSend: TEdit;
+    lblMessage: TLabel;
+    lblServerMess: TLabel;
+    btnSend: TButton;
+    grbLogin: TGroupBox;
+    btnConnect: TButton;
+    Label1: TLabel;
+    edtUser: TEdit;
+    Label2: TLabel;
+    btnDisconnect: TButton;
+    Label3: TLabel;
+    edtChannel: TEdit;
+    edtOauth: TMaskEdit;
+    grbEmoteCorner: TGroupBox;
+    lbEmotes: TListBox;
+    lblEmoteList: TLabel;
+    speCount: TSpinEdit;
+    btnSendEmotes: TButton;
+    grpPower: TGroupBox;
+    btnPower: TButton;
+    btnPowerJ: TButton;
+    btnPowerKursive: TButton;
+    lblOauthToken: TLinkLabel;
+    IdAntiFreeze1: TIdAntiFreeze;
+    tmPingPong: TTimer;
+    procedure btnConnectClick(Sender: TObject);
+    procedure IdIRCTwitchServerWelcome(ASender: TIdContext; const AMsg: string);
+    procedure IdIRCTwitchStatus(ASender: TObject; const AStatus: TIdStatus;
+      const AStatusText: string);
+    procedure IdIRCTwitchConnected(Sender: TObject);
+    procedure edtSendKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure btnSendClick(Sender: TObject);
+    procedure btnDisconnectClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure btnSendEmotesClick(Sender: TObject);
+    procedure btnPowerClick(Sender: TObject);
+    procedure btnPowerJClick(Sender: TObject);
+    procedure btnPowerKursiveClick(Sender: TObject);
+    procedure lblOauthTokenLinkClick(Sender: TObject; const Link: string;
+      LinkType: TSysLinkType);
+    procedure IdIRCTwitchPingPong(ASender: TIdContext);
+    procedure IdIRCTwitchRaw(ASender: TIdContext; AIn: Boolean;
+      const AMessage: string);
+    procedure IdIRCTwitchDisconnected(Sender: TObject);
+    procedure tmPingPongTimer(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmMain: TfrmMain;
+
+implementation
+
+{$R *.dfm}
+
+procedure Split(Delimiter: Char; Str: string; ListOfStrings: TStrings) ;
+begin
+   ListOfStrings.Clear;
+   ListOfStrings.Delimiter       := Delimiter;
+   ListOfStrings.StrictDelimiter := True; // Requires D2006 or newer.
+   ListOfStrings.DelimitedText   := Str;
+end;
+
+function HtmlToColor(s:string;aDefault:Tcolor):TColor;
+begin
+  if copy(s,1,1)='#' then begin
+    s:='$'+copy(s,6,2)+copy(s,4,2)+copy(s,2,2);
+  end
+  else
+    s:='clNone';
+  try
+    result:=StringToColor(s);
+  except
+    result:=aDefault;
+  end;
+end;
+
+function ColorToHtml(DColor:TColor):string;
+var
+  tmpRGB : TColorRef;
+begin
+  tmpRGB := ColorToRGB(DColor) ;
+  Result:=Format('#%.2x%.2x%.2x',
+                 [GetRValue(tmpRGB),
+                  GetGValue(tmpRGB),
+                  GetBValue(tmpRGB)]) ;
+end; {function ColorToHtml}
+
+procedure TfrmMain.btnConnectClick(Sender: TObject);
+begin
+    memServerInfo.Clear;
+
+    if edtUser.Text='' then
+    begin
+      memServerInfo.Lines.Add('No Username specified');
+      Exit;
+    end
+    else
+    begin
+      idIRCTwitch.Username:=edtUser.Text;
+      idIRCTwitch.Nickname:=edtUser.Text;
+    end;
+    if edtOauth.Text='' then
+    begin
+      memServerInfo.Lines.Add('No OAuth Token specified');
+      Exit;
+    end
+    else
+    begin
+       idIRCTwitch.Password:=edtOauth.Text;
+    end;
+    if edtChannel.Text='' then
+    begin
+      memServerInfo.Lines.Add('No Channel specified');
+      Exit;
+    end;
+
+    try
+        idIRCTwitch.Connect;
+    except
+      if not idIRCTwitch.Connected then
+        begin
+          memServerInfo.Lines.Add('Error connecting to ' + idIRCTwitch.Host);
+          Exit;
+        end;
+    end;
+    IdIRCTwitch.IOHandler.DefStringEncoding := IndyTextEncoding_UTF8();
+    idIRCTwitch.Raw('CAP REQ :twitch.tv/membership');
+    idIRCTwitch.Raw('CAP REQ :twitch.tv/tags');
+    idIRCTwitch.Raw('CAP REQ :twitch.tv/commands');
+    btnConnect.Enabled:=false;
+    edtUser.Enabled:=false;
+    edtOauth.Enabled:=false;
+    edtChannel.Enabled:=false;
+    btnDisconnect.Enabled:=true;
+    edtSend.Enabled:=true;
+    btnSend.Enabled:=true;
+    btnSendEmotes.Enabled:=true;
+    lbEmotes.Enabled:=true;
+    speCount.Enabled:=true;
+    btnPower.Enabled:=true;
+    btnPowerJ.Enabled:=true;
+    btnPowerKursive.Enabled:=true;
+    idIRCTwitch.Join('#'+edtChannel.Text);
+    tmPingPong.Enabled:=true;
+end;
+
+procedure TfrmMain.btnSendClick(Sender: TObject);
+begin
+  if not (edtSend.Text='') then begin
+    //idIRCTwitch.Say('#'+edtChannel.Text,edtSend.Text);
+    idIRCTwitch.Raw('PRIVMSG #'+edtChannel.Text+' :'+edtSend.Text);
+    edtSend.Text:='';
+  end;
+end;
+
+procedure TfrmMain.btnSendEmotesClick(Sender: TObject);
+var I:integer;
+begin
+  for I:=1 to speCount.Value do
+  begin
+     edtSend.Text:=edtSend.Text+lbEmotes.Items[lbEmotes.ItemIndex]+' ';
+  end;
+end;
+
+procedure TfrmMain.btnPowerJClick(Sender: TObject);
+begin
+   edtSend.Text:='おーおおおおおおおおおお ああああえーあーあーいーあーうー じょーおおおおおおおおおおおお ああえーおーあーあーうーうーあー えーえええーええーえええ ああああえーあーえーいーえーあー じょーおおおーおおーおおーおお ええええおーあーあああーああああ ';
+   btnSendClick(Sender);
+end;
+
+procedure TfrmMain.btnPowerKursiveClick(Sender: TObject);
+begin
+   edtSend.Text:='𝓞-𝓸𝓸𝓸𝓸𝓸𝓸𝓸𝓸𝓸𝓸 𝓐𝓐𝓐𝓐𝓔-𝓐-𝓐-𝓘-𝓐-𝓤- 𝓙𝓞-𝓸𝓸𝓸𝓸𝓸𝓸𝓸𝓸𝓸𝓸𝓸𝓸 𝓐𝓐𝓔-𝓞-𝓐-𝓐-𝓤-𝓤-𝓐- 𝓔-𝒆𝒆𝒆-𝒆𝒆-𝒆𝒆𝒆 𝓐𝓐𝓐𝓐𝓔-𝓐-𝓔-𝓘-𝓔-𝓐-𝓙𝓞-𝓸𝓸𝓸-𝓸𝓸-𝓸𝓸-𝓸𝓸 𝓔𝓔𝓔𝓔𝓞-𝓐-𝓐𝓐𝓐-𝓐𝓐𝓐𝓐';
+   btnSendClick(Sender);
+end;
+
+procedure TfrmMain.btnPowerClick(Sender: TObject);
+begin
+   edtSend.Text:='O-oooooooooo AAAAE-A-A-I-A-U-JO-oooooooooooo AAE-O-A-A-U-U-A-E-eee-ee-eee AAAAE-A-E-I-E-A-JO-ooo-oo-oo-oo EEEEO-A-AAA-AAAA';
+   btnSendClick(Sender);
+end;
+
+procedure TfrmMain.btnDisconnectClick(Sender: TObject);
+begin
+  if idIRCTwitch.Connected then
+  idIRCTwitch.Raw('QUIT :');
+  btnConnect.Enabled:=true;
+  edtUser.Enabled:=true;
+  edtOauth.Enabled:=true;
+  edtChannel.Enabled:=true;
+  btnDisconnect.Enabled:=false;
+  edtSend.Enabled:=false;
+  btnSend.Enabled:=false;
+  btnSendEmotes.Enabled:=false;
+  lbEmotes.Enabled:=false;
+  speCount.Enabled:=false;
+  btnPower.Enabled:=false;
+  btnPowerJ.Enabled:=false;
+  btnPowerKursive.Enabled:=false;
+  tmPingPong.Enabled:=false;
+  richChat.Clear;
+end;
+
+
+procedure TfrmMain.edtSendKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = VK_RETURN then
+  begin
+    btnSendClick(Sender);
+  end;
+end;
+
+procedure TfrmMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+    if idIRCTwitch.Connected then
+  idIRCTwitch.Raw('QUIT :');
+end;
+
+procedure TfrmMain.FormCreate(Sender: TObject);
+begin
+   lbEmotes.Items.LoadFromFile('.\emotes.txt');
+   System.SysUtils.FormatSettings.LongTimeFormat := 'hh:mm:ss.zzz';
+   Application.ProcessMessages;
+end;
+
+procedure TfrmMain.IdIRCTwitchConnected(Sender: TObject);
+begin
+  btnConnect.Enabled:=false;
+    edtUser.Enabled:=false;
+    edtOauth.Enabled:=false;
+    edtChannel.Enabled:=false;
+    btnDisconnect.Enabled:=true;
+    edtSend.Enabled:=true;
+    btnSend.Enabled:=true;
+    btnSendEmotes.Enabled:=true;
+    lbEmotes.Enabled:=true;
+    speCount.Enabled:=true;
+    btnPower.Enabled:=true;
+    btnPowerJ.Enabled:=true;
+    btnPowerKursive.Enabled:=true;
+end;
+
+procedure TfrmMain.IdIRCTwitchDisconnected(Sender: TObject);
+begin
+  btnConnect.Enabled:=true;
+  edtUser.Enabled:=true;
+  edtOauth.Enabled:=true;
+  edtChannel.Enabled:=true;
+  btnDisconnect.Enabled:=false;
+  edtSend.Enabled:=false;
+  btnSend.Enabled:=false;
+  btnSendEmotes.Enabled:=false;
+  lbEmotes.Enabled:=false;
+  speCount.Enabled:=false;
+  btnPower.Enabled:=false;
+  btnPowerJ.Enabled:=false;
+  btnPowerKursive.Enabled:=false;
+end;
+
+procedure TfrmMain.IdIRCTwitchPingPong(ASender: TIdContext);
+begin
+   memServerInfo.Lines.Add('*** PING PONG');
+end;
+
+procedure TfrmMain.IdIRCTwitchRaw(ASender: TIdContext; AIn: Boolean;
+  const AMessage: string);
+  var ActionMess,ANickname,PrivMess,ClearMess,SubMess:string;
+      ABadges,AColor,ADuration,AMonth,AMessageID,AReason:string;
+    AttrMess:TStringList;
+  posi:integer;
+begin
+SendMessage(RichChat.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+  if ContainsStr(AMessage,'ACTION') then
+  begin
+   AttrMess:=TStringList.Create;
+   try
+     Split(';', AMessage, AttrMess);
+     ANickName:=AttrMess[2];  //nickname
+     delete(ANickName, 1, 13);
+     AColor:=AttrMess[1];
+     ABadges:=AttrMess[0];
+   finally
+     AttrMess.Free;
+   end;
+   //Defined Badges by Twitch
+   if ContainsStr(ABadges,'admin') then
+     Anickname:='[A]'+ANickname;
+   if ContainsStr(ABadges,'bits') then
+     Anickname:='[B]'+ANickname;
+   if ContainsStr(ABadges,'global_mod') then
+     Anickname:='[GM]'+ANickname;
+   if ContainsStr(ABadges,'staff') then
+     Anickname:='[ST]'+ANickname;
+   if ContainsStr(ABadges,'moderator') then
+     Anickname:='[M]'+ANickname;
+   if ContainsStr(ABadges,'broadcaster') then
+     Anickname:='[BR]'+ANickname;
+   if ContainsStr(ABadges,'subscriber') then
+     Anickname:='[S]'+ANickname;
+   if ContainsStr(ABadges,'premium') then
+     Anickname:='[P]'+ANickname;
+   if ContainsStr(ABadges,'turbo') then
+     Anickname:='[T]'+ANickname;
+
+      ActionMess := Copy(AMessage, Pos('ACTION', AMessage)+6, Length(AMessage)-4);
+      delete(ActionMess,length(ActionMess),2);
+   //ACTION
+   RichChat.SelAttributes.Style := [fsBold,fsUnderline];
+   if ContainsStr(AColor,'#') then
+   begin
+      delete(Acolor,1,6);
+      RichChat.SelAttributes.Color := HtmlToColor(AColor,clGreen);
+   end
+   else
+      RichChat.SelAttributes.Color := clGreen;
+   RichChat.SelText := Anickname+':';
+   RichChat.SelAttributes.Style := [];
+   RichChat.SelText := #32+ActionMess+#10;
+   SendMessage(RichChat.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+  end;
+  //debug line for text messages
+  //if not ContainsStr(AMessage,'PRIVMSG') then
+  memServerInfo.Lines.Add('['+TimeToStr(Now())+'] '+AMessage);
+  //normal PRIVMSG
+  if ContainsStr(AMessage,'PRIVMSG') AND not ContainsStr(AMessage,'ACTION') then
+
+  begin
+
+   AttrMess:=TStringList.Create;
+   try
+     Split(';', AMessage, AttrMess);
+     if AttrMess.Count > 1 then
+     begin
+      if ContainsStr(AMessage,'bits/1') then
+        ANickname:=AttrMess[3]
+       else
+        ANickName:=AttrMess[2];
+       delete(ANickName, 1, 13);
+     end
+     else ANickname:=edtUser.Text;  //nickname
+
+
+     //sets badges
+     if AttrMess.Count > 1 then ABadges:=AttrMess[0] else ABadges:='';
+     if ContainsStr(AMessage,'bits/1') then
+     //sets color
+        if AttrMess.Count > 1 then AColor:=AttrMess[2] else AColor:='#000000'
+     else
+        if AttrMess.Count > 1 then AColor:=AttrMess[1] else AColor:='#000000';
+   finally
+     AttrMess.Free;
+   end;
+   //ACTION
+   //Defined Badges by Twitch
+   if ContainsStr(ABadges,'admin') then
+     Anickname:='[A]'+ANickname;
+   if ContainsStr(ABadges,'bits') then
+     Anickname:='[B]'+ANickname;
+   if ContainsStr(ABadges,'global_mod') then
+     Anickname:='[GM]'+ANickname;
+   if ContainsStr(ABadges,'staff') then
+     Anickname:='[ST]'+ANickname;
+   if ContainsStr(ABadges,'moderator') then
+     Anickname:='[M]'+ANickname;
+   if ContainsStr(ABadges,'broadcaster') then
+     Anickname:='[BR]'+ANickname;
+   if ContainsStr(ABadges,'subscriber') then
+     Anickname:='[S]'+ANickname;
+   if ContainsStr(ABadges,'premium') then
+     Anickname:='[P]'+ANickname;
+   if ContainsStr(ABadges,'turbo') then
+     Anickname:='[T]'+ANickname;
+
+    posi := Pos('PRIVMSG', AMessage);
+      PrivMess := Copy(AMessage, posi+7,Length(AMessage));
+    posi := Pos(':', PrivMess);
+      PrivMess := Copy(PrivMess, posi+1,Length(PrivMess));
+   RichChat.SelAttributes.Style := [fsBold,fsUnderline];
+
+   if ContainsStr(AColor,'#') then
+   begin
+      delete(Acolor,1,6);
+      RichChat.SelAttributes.Color := HtmlToColor(AColor,clBlack);
+   end
+   else
+      RichChat.SelAttributes.Color := clBlack;
+   RichChat.SelText := Anickname+':';
+   RichChat.SelAttributes.Color := clBlack;
+   RichChat.SelAttributes.Style := [];
+   RichChat.SelText := #32+PrivMess+#10;
+   SendMessage(RichChat.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+  end;
+
+
+if ContainsStr(AMessage,'CLEARCHAT') then
+  begin
+   AttrMess:=TStringList.Create;
+   try
+     Split(';', AMessage, AttrMess);
+     ADuration:=AttrMess[0];
+     delete(ADuration,1,14);
+     AReason:=AttrMess[1];
+     delete(Areason,1,11);
+   finally
+     AttrMess.Free;
+   end;
+    posi := Pos('CLEARCHAT', AMessage);
+      ClearMess := Copy(AMessage, posi+8,Length(AMessage));
+    posi := Pos(':', ClearMess);
+      ClearMess := Copy(ClearMess, posi+1,Length(ClearMess));
+   //ACTION
+   RichChat.SelAttributes.Style := [fsBold];
+      RichChat.SelAttributes.Color := clRed;
+   RichChat.SelText := ClearMess+' has been timed out for '+ADuration+' seconds. Reason: '+AReason+#10;
+   SendMessage(RichChat.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+  end;
+
+if ContainsStr(AMessage,'USERNOTICE') then
+  begin
+   AttrMess:=TStringList.Create;
+   try
+     Split(';', AMessage, AttrMess);
+     ANickName:=AttrMess[2];  //nickname
+     delete(ANickName, 1, 13);
+     ABadges:=AttrMess[0];
+     AColor:=AttrMess[1];
+     AMonth:=AttrMess[8];
+     delete(AMonth, 1, 17);
+     AMessageID:=AttrMess[7];
+     delete(AMessageID, 1, 7);
+   finally
+     AttrMess.Free;
+   end;
+    posi := Pos('USERNOTICE', AMessage);
+      SubMess := Copy(AMessage, posi+10,Length(AMessage));
+    posi := Pos(':', SubMess);
+      SubMess := Copy(SubMess, posi+1,Length(SubMess));
+   //ACTION
+   RichChat.SelAttributes.Style := [fsBold];
+      RichChat.SelAttributes.Color := clblue;
+   RichChat.SelText := ANickname+' '+AMessageID+'bed for '+AMonth+' Month(s) in a row. '+SubMess+#10;
+   SendMessage(RichChat.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+  end;
+
+  if ContainsStr(AMessage,'NOTICE') then
+  begin
+    posi := Pos('NOTICE', AMessage);
+      SubMess := Copy(AMessage, posi+6,Length(AMessage));
+    posi := Pos(':', SubMess);
+      SubMess := Copy(SubMess, posi+1,Length(SubMess));
+   //ACTION
+   RichChat.SelAttributes.Style := [fsBold];
+      RichChat.SelAttributes.Color := clgray;
+   RichChat.SelText := SubMess+#10;
+   SendMessage(RichChat.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+  end;
+
+ if ContainsStr('QUIT',AMessage) then
+   IdIRCTwitchDisconnected(ASender as TObject);
+ SendMessage(memServerInfo.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+end;
+
+procedure TfrmMain.IdIRCTwitchServerWelcome(ASender: TIdContext;
+  const AMsg: string);
+begin
+  memServerInfo.Lines.Add('Connected as: '+Amsg);
+end;
+
+procedure TfrmMain.IdIRCTwitchStatus(ASender: TObject; const AStatus: TIdStatus;
+  const AStatusText: string);
+begin
+  memServerInfo.Lines.Add(AStatusText);
+end;
+
+procedure TfrmMain.lblOauthTokenLinkClick(Sender: TObject; const Link: string;
+  LinkType: TSysLinkType);
+begin
+  ShellAPI.ShellExecute(0, 'Open', PChar(Link), nil, nil, SW_SHOWNORMAL);
+end;
+
+
+procedure TfrmMain.tmPingPongTimer(Sender: TObject);
+begin
+    idIRCTwitch.Ping('tmi.twitch.tv');
+end;
+
+end.

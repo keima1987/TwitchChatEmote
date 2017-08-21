@@ -1,0 +1,302 @@
+object frmMain: TfrmMain
+  Left = 0
+  Top = 0
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
+  Caption = 'Keima'#39's Emot-o-mat'
+  ClientHeight = 558
+  ClientWidth = 931
+  Color = clBtnFace
+  Font.Charset = ANSI_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Segoe UI'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  PixelsPerInch = 96
+  TextHeight = 13
+  object lblMessage: TLabel
+    Left = 8
+    Top = 379
+    Width = 48
+    Height = 13
+    Caption = 'Message:'
+  end
+  object lblServerMess: TLabel
+    Left = 8
+    Top = 409
+    Width = 50
+    Height = 13
+    Caption = 'Srv. Mess.'
+  end
+  object memServerInfo: TMemo
+    Left = 64
+    Top = 405
+    Width = 560
+    Height = 130
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    Font.Style = []
+    ParentFont = False
+    ReadOnly = True
+    ScrollBars = ssBoth
+    TabOrder = 5
+    WordWrap = False
+  end
+  object richChat: TRichEdit
+    Left = 630
+    Top = 8
+    Width = 297
+    Height = 527
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Segoe UI Emoji'
+    Font.Style = []
+    ParentFont = False
+    ReadOnly = True
+    ScrollBars = ssVertical
+    TabOrder = 6
+    Zoom = 100
+  end
+  object edtSend: TEdit
+    Left = 64
+    Top = 376
+    Width = 473
+    Height = 21
+    Enabled = False
+    TabOrder = 3
+    OnKeyDown = edtSendKeyDown
+  end
+  object btnSend: TButton
+    Left = 543
+    Top = 374
+    Width = 81
+    Height = 25
+    Caption = '&Send'
+    Enabled = False
+    TabOrder = 4
+    OnClick = btnSendClick
+  end
+  object grbLogin: TGroupBox
+    Left = 8
+    Top = 8
+    Width = 616
+    Height = 121
+    Caption = 'Login Information'
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 11
+      Top = 24
+      Width = 54
+      Height = 13
+      Caption = 'Username:'
+    end
+    object Label2: TLabel
+      Left = 11
+      Top = 56
+      Width = 69
+      Height = 13
+      Caption = 'Oauth Token:'
+    end
+    object Label3: TLabel
+      Left = 344
+      Top = 24
+      Width = 46
+      Height = 13
+      Caption = 'Channel:'
+    end
+    object btnConnect: TButton
+      Left = 11
+      Top = 80
+      Width = 262
+      Height = 25
+      Caption = '&Connect'
+      TabOrder = 4
+      OnClick = btnConnectClick
+    end
+    object edtUser: TEdit
+      Left = 86
+      Top = 21
+      Width = 187
+      Height = 21
+      TabOrder = 0
+    end
+    object btnDisconnect: TButton
+      Left = 344
+      Top = 80
+      Width = 262
+      Height = 25
+      Caption = 'Disconnect'
+      Enabled = False
+      TabOrder = 5
+      OnClick = btnDisconnectClick
+    end
+    object edtChannel: TEdit
+      Left = 396
+      Top = 21
+      Width = 210
+      Height = 21
+      TabOrder = 2
+    end
+    object edtOauth: TMaskEdit
+      Left = 86
+      Top = 53
+      Width = 187
+      Height = 21
+      PasswordChar = #8226
+      TabOrder = 1
+      Text = ''
+    end
+    object lblOauthToken: TLinkLabel
+      Left = 344
+      Top = 57
+      Width = 70
+      Height = 17
+      Caption = '<a href="http://www.twitchapps.com/tmi/">Oauth Token</a>'
+      TabOrder = 3
+      OnLinkClick = lblOauthTokenLinkClick
+    end
+    object chbLog: TCheckBox
+      Left = 506
+      Top = 48
+      Width = 97
+      Height = 17
+      Caption = 'Log'
+      TabOrder = 6
+    end
+  end
+  object grbEmoteCorner: TGroupBox
+    Left = 8
+    Top = 135
+    Width = 329
+    Height = 235
+    Caption = 'Emote Corner'
+    TabOrder = 1
+    object lblEmoteList: TLabel
+      Left = 11
+      Top = 21
+      Width = 40
+      Height = 13
+      Caption = 'Emotes:'
+    end
+    object lbEmotes: TListBox
+      Left = 56
+      Top = 21
+      Width = 121
+      Height = 204
+      Enabled = False
+      ItemHeight = 13
+      TabOrder = 0
+    end
+    object speCount: TSpinEdit
+      Left = 200
+      Top = 21
+      Width = 121
+      Height = 22
+      Enabled = False
+      MaxValue = 20
+      MinValue = 1
+      TabOrder = 1
+      Value = 1
+    end
+    object btnSendEmotes: TButton
+      Left = 200
+      Top = 49
+      Width = 121
+      Height = 176
+      Caption = '&Insert Emotes'
+      Enabled = False
+      TabOrder = 2
+      OnClick = btnSendEmotesClick
+    end
+  end
+  object grpPower: TGroupBox
+    Left = 343
+    Top = 135
+    Width = 281
+    Height = 235
+    Caption = 'Sonic Brain Power!'
+    TabOrder = 2
+    object btnPower: TButton
+      Left = 11
+      Top = 21
+      Width = 257
+      Height = 65
+      Caption = 'Send Power!'
+      Enabled = False
+      TabOrder = 0
+      OnClick = btnPowerClick
+    end
+    object btnPowerJ: TButton
+      Left = 11
+      Top = 92
+      Width = 257
+      Height = 65
+      Caption = 'Send Power! Japanese'
+      Enabled = False
+      TabOrder = 1
+      OnClick = btnPowerJClick
+    end
+    object btnPowerKursive: TButton
+      Left = 11
+      Top = 163
+      Width = 257
+      Height = 65
+      Caption = 'Send Power! Kursive'
+      Enabled = False
+      TabOrder = 2
+      OnClick = btnPowerKursiveClick
+    end
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Top = 539
+    Width = 931
+    Height = 19
+    Panels = <
+      item
+        Width = 50
+      end>
+  end
+  object IdIRCTwitch: TIdIRC
+    OnStatus = IdIRCTwitchStatus
+    OnDisconnected = IdIRCTwitchDisconnected
+    OnConnected = IdIRCTwitchConnected
+    ConnectTimeout = 0
+    Host = 'irc.twitch.tv'
+    IPVersion = Id_IPv4
+    ReadTimeout = -1
+    ReuseSocket = rsFalse
+    CommandHandlers = <>
+    ExceptionReply.Code = '500'
+    ExceptionReply.Text.Strings = (
+      'Unknown Internal Error')
+    Username = ''
+    Password = ''
+    UserMode = []
+    OnServerWelcome = IdIRCTwitchServerWelcome
+    OnPingPong = IdIRCTwitchPingPong
+    OnRaw = IdIRCTwitchRaw
+    Left = 880
+    Top = 16
+  end
+  object IdAntiFreeze1: TIdAntiFreeze
+    ApplicationHasPriority = False
+    OnlyWhenIdle = False
+    Left = 824
+    Top = 16
+  end
+  object tmPingPong: TTimer
+    Enabled = False
+    Interval = 30000
+    OnTimer = tmPingPongTimer
+    Left = 648
+    Top = 16
+  end
+end

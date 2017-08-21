@@ -1,0 +1,19 @@
+program TwitchChatEmote;
+
+uses
+  Vcl.Forms,
+  UMain in 'UMain.pas' {frmMain},
+  Vcl.Themes,
+  Vcl.Styles,
+  ULiveStream in 'ULiveStream.pas' {frmLiveStream};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.Title := 'Keima''s Emot-o-mat';
+  Application.CreateForm(TfrmMain, frmMain);
+  Application.CreateForm(TfrmLiveStream, frmLiveStream);
+  Application.Run;
+end.
