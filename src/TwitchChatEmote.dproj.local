@@ -2,12 +2,12 @@
 <BorlandProject>
 	<Transactions>
     <Transaction>2017/04/26 14:07:30.000.551,=C:\Users\test\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2017/04/26 14:20:20.000.609,C:\Users\test\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\Users\test\Desktop\TwitchChatEmote\UMain.pas</Transaction>
-    <Transaction>2017/04/26 14:20:20.000.609,C:\Users\test\Documents\Embarcadero\Studio\Projects\Unit1.dfm=C:\Users\test\Desktop\TwitchChatEmote\UMain.dfm</Transaction>
-    <Transaction>2017/04/26 14:20:24.000.857,C:\Users\test\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\Users\test\Desktop\TwitchChatEmote\TwitchChatEmote.dproj</Transaction>
+    <Transaction>2017/04/26 14:20:20.000.609,C:\Users\test\Desktop\TwitchChatEmote\UMain.dfm=C:\Users\test\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>2017/04/26 14:20:20.000.609,C:\Users\test\Desktop\TwitchChatEmote\UMain.pas=C:\Users\test\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2017/04/26 14:20:24.000.857,C:\Users\test\Desktop\TwitchChatEmote\TwitchChatEmote.dproj=C:\Users\test\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
     <Transaction>2017/04/28 22:26:19.000.223,=E:\Dokumenter\TwitchChatEmote\Unit1.pas</Transaction>
-    <Transaction>2017/04/28 22:28:28.000.061,E:\Dokumenter\TwitchChatEmote\Unit1.dfm=E:\Dokumenter\TwitchChatEmote\ULiveStream.dfm</Transaction>
-    <Transaction>2017/04/28 22:28:28.000.061,E:\Dokumenter\TwitchChatEmote\Unit1.pas=E:\Dokumenter\TwitchChatEmote\ULiveStream.pas</Transaction>
+    <Transaction>2017/04/28 22:28:28.000.061,E:\Dokumenter\TwitchChatEmote\ULiveStream.dfm=E:\Dokumenter\TwitchChatEmote\Unit1.dfm</Transaction>
+    <Transaction>2017/04/28 22:28:28.000.061,E:\Dokumenter\TwitchChatEmote\ULiveStream.pas=E:\Dokumenter\TwitchChatEmote\Unit1.pas</Transaction>
     <Transaction>2017/08/21 18:17:42.000.762,E:\shared\Programmation\for-git\TwitchChatEmote\src\ULiveStream.pas=</Transaction>
   </Transactions>
 </BorlandProject>

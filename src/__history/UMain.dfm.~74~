@@ -56,7 +56,7 @@ object frmMain: TfrmMain
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
-    Font.Name = 'Segoe UI Emoji'
+    Font.Name = 'Yu Gothic UI'
     Font.Style = []
     ParentFont = False
     ReadOnly = True
